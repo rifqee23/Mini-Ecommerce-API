@@ -143,3 +143,38 @@ func TestUserRepositoryImpl_FindById(t *testing.T) {
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestUserRepositoryImpl_FindByEmail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+
+	}
+	defer db.Close()
+
+	mock.ExpectBegin()
+	tx, err := db.Begin()
+
+	assert.NoError(t, err)
+
+	rows := sqlmock.NewRows([]string{"user_id", "email", "password", "role"}).
+		AddRow(1, "rifqi@gmail.com", "rifqi123", domain.RoleUser)
+
+	mock.ExpectQuery(regexp.QuoteMeta("select user_id, email, password, role from users where email=?")).WithArgs("rifqi@gmail.com").WillReturnRows(rows)
+
+	repo := NewUserRepositoryImpl()
+	result, _ := repo.FindByEmail(context.Background(), tx, "rifqi@gmail.com")
+	t.Logf("data user: %+v", result)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, result.UserId)
+	assert.Equal(t, "rifqi@gmail.com", result.Email)
+	assert.Equal(t, "rifqi123", result.Password)
+	assert.Equal(t, domain.RoleUser, result.Role)
+
+	mock.ExpectCommit()
+	err = tx.Commit()
+	assert.NoError(t, err)
+
+	assert.NoError(t, mock.ExpectationsWereMet())
+}

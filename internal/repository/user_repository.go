@@ -11,4 +11,5 @@ type UserRepository interface {
 	Update(ctx context.Context, tx *sql.Tx, user domain.Users) (domain.Users, error)
 	FindAll(ctx context.Context, db *sql.DB) ([]domain.Users, error)
 	FindById(ctx context.Context, tx *sql.Tx, id int) (domain.Users, error)
+	FindByEmail(ctx context.Context, tx *sql.Tx, email string) (domain.Users, error)
 }
